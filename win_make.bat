@@ -32,10 +32,10 @@ echo.
 echo                      ☆☆☆☆☆按任意键继续☆☆☆☆☆
 pause
 
-xelatex poster_landscape
+pdflatex --enable-write18 poster_landscape
 rem bibtex poster_landscape
-xelatex poster_landscape
-xelatex poster_landscape
+pdflatex poster_landscape
+pdflatex poster_landscape
 
 del  *.toc  /s
 del  *.out  /s
