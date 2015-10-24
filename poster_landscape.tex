@@ -8,7 +8,8 @@
 \usepackage{multirow}
 \usepackage{rotating}
 \usepackage{bm}
-\usepackage{url}
+\usepackage{url} 
+\usepackage{hyperref} 
 
 \usepackage{graphicx}
 \usepackage{multicol}
@@ -20,7 +21,7 @@
 
 \newcommand{\captionfont}{\footnotesize}
 
-\graphicspath{{images/}{../images/}}
+\graphicspath{{images/}{../images/}{fig/}}
 \usetikzlibrary{calc}
 
 \newcommand{\SET}[1]  {\ensuremath{\mathcal{#1}}}
@@ -101,6 +102,27 @@
    \end{tikzpicture}
 }
 
+\newcommand{\setS}{\mathbf{G}}
+\newcommand{\comp}{C}
+\newcommand{\TranscodeIndicator}{P}
+\newcommand{\RequestingSeg}{\mathbf{K}}
+\newcommand{\TranscodeSet}{\mathbf{E}}
+\newcommand{\IdleComp}{I}
+\newcommand{\SegRepCost}{F}
+\newcommand{\Assign}{A}
+\newcommand{\ReqFromRegion}{J}
+\newcommand{\CDNRegions}{\mathbf{R}}
+\newcommand{\Users}{\mathbf{U}}
+\newcommand{\Redirect}{D}
+\newcommand{\RegionRepCost}{Z}
+\newcommand{\bandwidth}{W}
+\newcommand{\Version}{L}
+\newcommand{\USPref}{H}
+\newcommand{\ReqOfSeg}{Q}
+\newcommand{\SegQuality}{Y}
+\newcommand{\Bitrate}{B}
+
+
 \hyphenation{resolution occlusions}
 %%
 \begin{poster}%
@@ -114,19 +136,19 @@
   bgColorOne=white,
   bgColorTwo=white,
   borderColor=lightblue,
-  headerColorOne=black,
-  headerColorTwo=lightblue,
-  headerFontColor=white,
+  headerColorOne=white,%blue,
+  headerColorTwo=white,%lightblue,
+  headerFontColor=blue,%white,
   boxColorOne=white,
   boxColorTwo=lightblue,
   % Format of textbox
-  textborder=roundedleft,
+  textborder=roundedsmall,%roundedleft,
   % Format of text header
   eyecatcher=true,
   headerborder=closed,
-  headerheight=0.1\textheight,
+  headerheight=0.125\textheight,
 %  textfont=\sc, An example of changing the text font
-  headershape=roundedright,
+  headershape=smallrounded,
   headershade=shadelr,
   headerfont=\Large\bf\textsc, %Sans Serif
   textfont={\setlength{\parindent}{1.5em}},
@@ -136,14 +158,14 @@
   linewidth=2pt
   }
   % Eye Catcher
-  {\includegraphics[height=5em]{fig/PearLogo.eps}} 
+  {\includegraphics[height=5em]{logo/PearLogo.eps}} 
   % Title
-  {\bf\textsc{GraphTrack: Fast and Globally Optimal Tracking in Videos}\vspace{0.5em}}
+  {\bf{A Joint Online Transcoding and Delivery Approach\\ for Dynamic Adaptive Streaming}\vspace{0.25em}}
   % Authors
-  {\textsc{\{ Brian.Amberg and Thomas.Vetter \}@unibas.ch}}
+  {\textsc{ Alan Zhuang      }  \href{mailto:a@pear.hk}{\nolinkurl{a@pear.hk}}}
   % University logo
   {% The makebox allows the title to flow into the logo, this is a hack because of the L shaped logo.
-    \includegraphics[height=4em]{fig/UST4C_L4.eps}
+    \includegraphics[height=5em]{logo/UST4C_L4.eps}
   }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,213 +184,159 @@
       \tikz{\useasboundingbox (-0.2em,-0.32em) rectangle(0.2em,0.32em); \draw[draw=black,fill=lightblue,line width=0.03em] (0,0) circle(0.18em);}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Problem}{name=problem,column=0,row=0}{
+  \headerbox{Background}{name=background,span=1,column=0,row=0}{
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   Special effects in movies require tracks of features through scenes. Tracks are found in
-   an interactive process. The artist marks a position, and the computer
-   proposes a track which is then further refined by the artist.
-
-   This is a difficult problem due to three aspects. 
-   \begin{enumerate}\compresslist
-      \item Appearance changes due to lighting and pose
-      \item Occlusions
-      \item Speed: Interactive editing requires faster than framerate calculation
-   \end{enumerate}
-   \vspace{0.3em}
+\noindent
+Popular online video sites \\
+   %\begin{center}
+    \drawvideo{4}{40}{%
+   		\includegraphics[height=2.7em]{logo/YouTube.eps}%
+   		\includegraphics[height=2.6em]{logo/Netflix.eps}%
+   		\includegraphics[height=2.7em]{logo/youku.png}%
+   		\includegraphics[height=2.7em]{logo/tencent_video.png}%
+   	}
+   %\end{center}
+   transcode their vidoes to multiple versions\\
+   $$\rightarrow \{ ~mp4, [H.264, AAC]~ \}\left\{
+   \begin{array}{ll}
+   version_1     & {(x_1 ~ kbps)}\\
+   version_2     & {(x_2 ~ kbps)}\\
+   \vdots     & {\vdots}\\
+   version_n     & {(x_n ~ kbps)}
+   \end{array} \right. $$
+   and then stream them through the network, \\
+   %\begin{enumerate}\compresslist
+   %   \item Appearance changes due to lighting and pose
+   %   \item Occlusions
+   %   \item Speed: Interactive editing requires faster than framerate calculation
+   %\end{enumerate}
+   %\begin{center}
+   	\includegraphics[width=\linewidth]{fig/adaptive_streaming_arch.pdf}
+   %\end{center}
+   so that users can enjoy a better watching experience according to their current bandwidths and device decoding abilities. 
  }
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Contributions}{name=contribution,column=1,row=0,bottomaligned=problem}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   We formulated tracking as path search in a large graph, and solve it
-   efficiently with a modificiation of Dijkstra's algorithm.  
-
-   The method is based on \cite{awf:tracking}. Our main contributions are
-   \begin{enumerate}\compresslist
-   \item Efficient incorporation of a background appearance model
-   \item Formulation as a shortest path problem
-   \item (Correct) handling of occlusions
-   \item High-Efficiency implementation with up to 150 fps for a high
-   resolution video
-   \end{enumerate}
-   \vspace{0.3em}
-  }
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Results}{name=results,column=2,span=2,row=0}{
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \drawvideo{5}{40}{%
-      \includegraphics[width=0.2\linewidth]{red-4-sec_000_rastered}%
-        \includegraphics[width=0.2\linewidth]{red-4-sec_024_rastered}%
-        \includegraphics[width=0.2\linewidth]{red-4-sec_048_rastered}%
-        \includegraphics[width=0.2\linewidth]{red-4-sec_072_rastered}%
-        \includegraphics[width=0.2\linewidth]{red-4-sec_095_rastered}%
-    }
-  \begin{tabular*}{\linewidth}{*{5}{@{}p{0.2\linewidth}@{}}}
-    {\hfill{}Frame 0\hfill{}} & {\hfill{}24\hfill{}} &  {\hfill{}48\hfill{}} &  {\hfill{}72\hfill{}} & {\hfill{}95\hfill{}}
-  \end{tabular*}
-  \\[1em]
-      \drawvideo{5}{40}{%
-        \includegraphics[width=0.2\linewidth]{giraffe-run-000-rastered}%
-          \includegraphics[width=0.2\linewidth]{giraffe-run-100-rastered}%
-          \includegraphics[width=0.2\linewidth]{giraffe-run-200-rastered}%
-          \includegraphics[width=0.2\linewidth]{giraffe-run-300-rastered}%
-          \includegraphics[width=0.2\linewidth]{giraffe-run-458-rastered}%
-      }
-  \begin{tabular*}{\linewidth}{*{5}{@{}p{0.2\linewidth}@{}}}
-    {\hfill{}Frame 0\hfill{}}  &
-    {\hfill{}100\hfill{}} &
-    {\hfill{}200\hfill{}} &
-    {\hfill{}300\hfill{}} &
-    {\hfill{}458\hfill{}} 
-  \end{tabular*}
-      \begin{multicols}{2}
-    Between one and three user clicks were needed to achieve accurate tracking for
-      the head sequence. Note the correct handling of the occluded ear, which
-      required only a single click. 
-
-      The eye of the running giraffe required eight user interactions, of which three
-      marked occlusions. 
-      \end{multicols}
-      \vspace{-0.6em}
+\headerbox{Problem}{name=problem,column=0,above=bottom}{
+	\noindent
+	 They all transcode origin videos to all versions. In such scheme, 
+	 \begin{itemize}
+	 	\item only a small set of candidate bitrates to manually choose from; cannot effectively adapt to the changing network conditions
+	 	\item huge computing resource consumption
+	 	\begin{itemize}
+	 		\item H.264: 1/3 to 2/3 of playback time
+	 		\item H.265: 30+ times of playback time
+	 		\item 1 CPU: 1-2 concurrent coding tasks
+	 	\end{itemize}
+	 	\item oblivious of users' \emph{preferences} of different \emph{peering servers}
+	 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{References}{name=references,column=0,above=bottom}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \smaller
-    \bibliographystyle{ieee}
-    \renewcommand{\section}[2]{\vskip 0.05em}
-      \begin{thebibliography}{1}\itemsep=-0.01em
-      \setlength{\baselineskip}{0.4em}
-      \bibitem{amberg11:graphtrack}
-        B.~Amberg, T. Vetter.
-        \newblock {GraphTrack}: {F}ast and {G}lobally {O}ptimal {T}racking in {V}ideos
-        \newblock In {\em CVPR '11}
-      \bibitem{awf:tracking}
-        A.~Buchanan and A.~Fitzgibbon.
-        \newblock {I}nteractive {F}eature {T}racking using {K-D} {T}rees and {D}ynamic {P}rogramming.
-        \newblock In {\em CVPR '06}
-      \end{thebibliography}
-   \vspace{0.3em}
-  }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{A Future Direction}{name=questions,column=1,span=2,aligned=references,above=bottom}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \begin{multicols}{2}
-    We incorporated a background model, where a click informs us not only that `this is how the
-    patch looks like', but also for the rest of the frame, `this is how the patch
-    does not look like'. 
-    
-    Can we also \emph{efficiently} use a background tracks model, allowing us
-    to reason, `this would be a good track, but part of it can be better
-    explained by tracking another point'.
-  \end{multicols}
-   \vspace{0.3em}
-  }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Source Code}{name=references,column=3,aligned=references,above=bottom}{
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  The source code and compiled executables with an interactive interface are available at \\
-  \url{http://www.cs.unibas.ch/personen/amberg_brian/graphtrack}
-   \vspace{0.3em}
-  }
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\headerbox{Speed}{name=speed,column=2,span=2,row=0,below=results,above=references}{
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    \begin{multicols}{2}
-\newcommand{\basiswidth}{0.22}
-\newcommand{\basisskip}{0.04} % (1-4*\basiswidth)/3
-\newcommand{\imagegrid}[1]{
-\begin{tabular}{@{}
-  c@{\hspace{\basisskip\linewidth}}%
-  c@{\hspace{\basisskip\linewidth}}%
-  c@{\hspace{\basisskip\linewidth}}%
-  c@{}}
-  %
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-01} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-02} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-03} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-04} \\
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-05} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-06} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-07} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-08} \\
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-09} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-10} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-11} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-12} \\
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-13} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-14} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-15} &
-\includegraphics[width=\basiswidth\linewidth,height=\basiswidth\linewidth,keepaspectratio]{#1-16} 
-\end{tabular}
+\headerbox{Observations \& Insights}{name=measurements,column=1}{
+	\noindent
+	Video Viewing Patterns (Pro. \& UGC)\\
+	%\begin{itemize}
+		%\item in BesTV (Professional Content)\\
+		\includegraphics[width=.49\linewidth]{fig/video-freq.eps}
+		\includegraphics[width=.49\linewidth]{fig/sy-req-vs-seg.eps}
+		%\item in WeiShi (UGC)\\
+		%\includegraphics[width=.32\linewidth]{fig/video-popularity.eps}
+		%\includegraphics[width=.24\linewidth]{fig/request-upload-overtime.eps}
+		\includegraphics[width=.46\linewidth]{fig/view-in-3-days.eps}
+		\includegraphics[width=.53\linewidth]{fig/updowntimediff.png}\\
+	%\end{itemize}
+	CDN Patterns (CPU load \& bandwidth)\\
+	%\begin{itemize}
+		%\item CPU load patterns\\
+		\includegraphics[width=0.48\linewidth]{fig/cpuload_vs_server.eps}
+		\includegraphics[width=0.48\linewidth]{fig/idc_cpuload_over_time.eps}
+		%\includegraphics[width=0.32\linewidth]{fig/server_cpu_load_overtime.eps}
+		%\includegraphics[width=0.24\linewidth]{fig/server_cv_cdf.eps}\\
+		%\footnote{$CV = 1/24 \sum_{h=0}^{23} {\sqrt{E[(X_h - \bar{X_h})^2]}}/{\bar{X_h}}$, $X_h$: CPU load in $h$}
+		%\item total bandwidth of a CDN region; CPU utilization of a server\\
+		\includegraphics[width=0.65\linewidth]{fig/bandwidth.png}
+		\includegraphics[width=0.34\linewidth]{fig/cpu_utilization.png}\\
+		%\item bandwidth patterns\\
+		%\includegraphics[width=0.24\linewidth]{fig/user-server-speed.eps}
+		\includegraphics[width=0.44\linewidth]{fig/user-server-speed-ratio.eps}
+		%\includegraphics[width=0.23\linewidth]{fig/tencent_cdn_server_downloadspeed_20130504.eps}
+		\includegraphics[width=0.55\linewidth]{fig/region-speed-distribution.eps}\\
+	%\end{itemize}
+	%\begin{itemize}
+	%\end{itemize}
+	Insights:\\
+	%\begin{itemize}
+		$\star \S$ No necessary to pre-transcode/store all\\
+		%pre-transcoding every segment of all videos to an increasing number of versions is a huge waste of computing resource
+		$\star \S$ Most backend servers in CDNs are predictably(stably) idle\\
+		\indent Can be scheduled for transcoding?\\
+		$\star \S$ users have preferences in CDN regions\\
+		$\star \S$ regions have preferences in media versions
+	%\end{itemize}
 }
-\noindent\begin{tabular}{@{}ccc@{}}
-\begin{minipage}{0.3\linewidth}
-  \includegraphics[width=\linewidth]{basis-giraffe-example-frame}\\[1em]
-\end{minipage}&
-\begin{minipage}{0.3\linewidth}
-  \imagegrid{basis-giraffe-basis}
-\end{minipage}&
-\begin{minipage}{0.3\linewidth}
-  \imagegrid{basis-giraffe-response}
-\end{minipage}\\
-\smaller Image &\smaller  Filter Bank &\smaller  Response
-\end{tabular}\\[1em]
-\indent{}Speed is achieved by preprocessing the video with an adaptive filter
-bank as in~\cite{awf:tracking}. Preprocessing was sped up significantly, but is
-still slower than realtime.
-
-This encodes the video into 16 byte per pixel feature vectors. We implemented
-an efficient search for similar patches using the SIMD hardware of modern
-processors, and only evaluate the cost on these candidate patches. (Typically
-200 patches per frame). Candidate search and reasoning are highly efficient
-resulting in an interactive system.
-
-Note that the preprocessing is not specific to the interestpoints tracked
-later. A single preprocessed video can therefore be used in many annotation
-sessions.
-\end{multicols}
-   \vspace{0.0em}
-  }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Method}{name=method,column=0,below=problem,bottomaligned=speed}{
+\headerbox{Framework}{name=framework,span=1,column=1,above=bottom}{
+\noindent
+3 phases joint optimization\\
+\includegraphics[width=1.0\linewidth]{fig/framework.eps}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \noindent{\centering\includegraphics[width=0.95\linewidth]{images/graph_occluded.pdf}\\}
-  \indent The cost is interpreted as a directed acyclic graph
-  with weights on the nodes and edges. The nodes encode candidate positions,
-  and the edges the transition costs between candidates. Additional edges
-  (dashed) allow occlusion transitions which skip frames.
-
-  The optimal track is found with a modification of Dijkstra's shortest path
-  search. The search was speed up by lower bounding the cost, and lazily
-  evaluating the accurate cost only where necessary to find the global optimum.
-   \vspace{0.3em}
-  }
+\headerbox{Methods}{name=methods,span=2,column=2}{
+	%\includegraphics[width=0.4\linewidth]{fig/framework.eps}\\
+	\noindent
+	\emph{Girls} Chasing \emph{Boys}! (Stable Maching plus Linear Programming)
+	\begin{center}
+		\includegraphics[width=0.73\linewidth]{fig/transcoding_delivery.pdf}
+	\small{
+		$
+		\max_{\Redirect^{(T)}} \sum_{u \in \Users^{(T)}, r \in \CDNRegions} \USPref_{u,r} \Redirect^{(T)}_{u,r}; ~
+		\label{eq:redirect}
+		$
+		$
+		\max_{\TranscodeIndicator^{(T)}} \sum_{(s,v) \in \RequestingSeg^{(T)}} \TranscodeIndicator^{(T)}_{(s,v)} e_{(s,v)}^{(T)}; ~
+		$
+		$
+		\min_{\Assign^{(T)}} \sum_{(s,v) \in \TranscodeSet^{(T)}} \sum_{r \in \CDNRegions} \Assign^{(T)}_{(s,v),r} \SegRepCost_{(s,v), r}
+		$
+	}
+	\end{center}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \headerbox{Background Model}{name=background model,column=1,below=problem,bottomaligned=speed}{
+\headerbox{Resuls}{name=results,column=2,above=bottom}{
+\noindent
+%\begin{itemize}
+	%\item Computing resource saved\\
+		\includegraphics[width=0.49\linewidth]{fig/comp-saved-overtime-vs-ver-iter.eps}
+		%\includegraphics[width=0.44\linewidth]{fig/comp-saved-overtime-vs-vseg.eps}
+	%\item Improvement of QoE\\
+		\includegraphics[width=0.49\linewidth]{fig/redirection-cmp.eps}
+		\includegraphics[width=0.49\linewidth]{fig/startup-delay.eps}
+		\includegraphics[width=0.49\linewidth]{fig/redirection-ver-cmp.eps}
+	%\item Mismatch\\
+		\includegraphics[width=0.56\linewidth]{fig/mismatch-overtime.pdf}
+	%\item Replication Cost\\
+		%\includegraphics[width=0.32\linewidth]{fig/transcode-cmp-mismatchbit.eps}
+		\includegraphics[width=0.41\linewidth]{fig/replication-cost-vs-version.eps}	
+%\end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\noindent\begin{tabular}{r@{\hspace{0.3em}}c@{\hspace{1.5em}}c@{}}
-& With & Without\\
-& background model & background model\\
-\begin{sideways}{\makebox[0.37\linewidth][c]{Ridge of the lips}}\end{sideways} &
-\includegraphics[width=0.40\linewidth]{candidates_lips_ridge_left_bg} &
-\includegraphics[width=0.40\linewidth]{candidates_lips_ridge_left_no_bg} \\[2em]
-%\begin{sideways}{\makebox[0.32\linewidth][c]{Flank of a giraffe}}\end{sideways} & 
-%\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_bg}&
-%\includegraphics[width=0.40\linewidth]{candidates_giraffes_flank_no_bg}\\
-\end{tabular}
-  \indent We incorporate a background model, such that a click tells us not only `this
-  is how the landmark looks like', but also `this is how the landmark
-  does \emph{not} look like' for all other patches in that frame.
-
-  The figure contrasts the per frame evidence for each candidate patch with and
-  without a background model. Using the background model makes the correct
-  patch probable enough, that it is chosen. But note that global reasoning over
-  the entire path is still necessary, as the correct patch is not the most
-  probable patch in this frame.
-   \vspace{0.3em}
-  }
+\headerbox{Hightlights}{name=highlights,column=3,below=methods,aligned=results}{
+	\noindent
+	\begin{itemize}
+		\item $44.8\%$  users enjoy higher bitrate versions than the load-balanced redirection scheme
+		\item $4.5$x users enjoy the highest possible bitrate
+		\item Mismatch rate reduced by over $42.2\%$
+		\item $\sim 80\%$ computing resource saved when the number of versions is 4.\\
+		The higher the number is, the more resource our approach saves. 
+	\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\headerbox{Afterword}{name=afterword,column=3,above=bottom}{
+\noindent 
+Transcoding and delivery can, and should be considered \& done jointly.\\
+$\S$ A joint work with THU, HKU, Tencent.\\
+$\S$ Appeared in IEEE TMM 2015.\\
+$\S$ In serving WeChat video clip, QZone video...
+}
 
 \end{poster}
 
